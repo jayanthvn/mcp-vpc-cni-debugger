@@ -2,10 +2,9 @@
 package collectors
 
 import (
-    "fmt"
     "os/exec"
     "strings"
-    "mcp-vpc-cni-debugger/pkg/models"
+    "github.com/jayanthvn/mcp-vpc-cni-debugger/pkg/models"
 )
 
 func GetRoutingInfo() ([]models.LinuxRoute, error) {

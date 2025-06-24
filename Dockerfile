@@ -1,6 +1,8 @@
 
-FROM golang:1.20 AS builder
+FROM golang:1.22 AS builder
 WORKDIR /app
+ENV GOPROXY=direct
+ENV GOTOOLCHAIN=local
 COPY . .
 RUN go mod tidy && go build -o mcp-server ./cmd/mcp-server
 

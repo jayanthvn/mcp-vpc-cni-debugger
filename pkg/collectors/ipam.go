@@ -5,7 +5,7 @@ import (
     "encoding/json"
     "errors"
     "os"
-    "mcp-vpc-cni-debugger/pkg/models"
+    "github.com/jayanthvn/mcp-vpc-cni-debugger/pkg/models"
 )
 
 func GetIPAMEntry(ip string) (*models.IPAMEntry, error) {

@@ -6,8 +6,7 @@ import (
     "fmt"
     "net/http"
     "io/ioutil"
-    "encoding/json"
-    "mcp-vpc-cni-debugger/pkg/models"
+    "github.com/jayanthvn/mcp-vpc-cni-debugger/pkg/models"
 )
 
 func GetENIFromIMDS() (*models.ENIInfo, error) {

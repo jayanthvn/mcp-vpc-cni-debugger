@@ -3,7 +3,7 @@ package main
 
 import (
     "github.com/gin-gonic/gin"
-    "mcp-vpc-cni-debugger/pkg/collectors"
+    "github.com/jayanthvn/mcp-vpc-cni-debugger/pkg/collectors"
 )
 
 func main() {

@@ -2,7 +2,7 @@
 package collectors
 
 import (
-    "mcp-vpc-cni-debugger/pkg/models"
+    "github.com/jayanthvn/mcp-vpc-cni-debugger/pkg/models"
 )
 
 func GenerateVpcCniPodReport(podName, namespace string) (*models.VpcCniPodNetwork, error) {
