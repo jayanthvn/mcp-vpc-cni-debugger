@@ -1,0 +1,37 @@
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: mcp-cni-debugger
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: mcp-cni-debugger
+  template:
+    metadata:
+      labels:
+        name: mcp-cni-debugger
+    spec:
+      hostPID: true
+      hostNetwork: true
+      serviceAccountName: mcp-cni-debugger
+      containers:
+      - name: mcp-debugger
+        image: your-repo/mcp-cni-debugger:latest
+        imagePullPolicy: Always
+        command: ["/app/mcp-server"]
+        volumeMounts:
+        - name: run-dir
+          mountPath: /var/run/aws-node
+        - name: iptables
+          mountPath: /var/run/xtables.lock
+        securityContext:
+          privileged: true
+      volumes:
+      - name: run-dir
+        hostPath:
+          path: /var/run/aws-node
+      - name: iptables
+        hostPath:
+          path: /run/xtables.lock
