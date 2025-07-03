@@ -7,20 +7,27 @@ import (
     "net/http"
     "io/ioutil"
     "github.com/jayanthvn/mcp-vpc-cni-debugger/pkg/models"
+    "github.com/aws/amazon-vpc-cni-k8s/utils/imds"
 )
 
 func GetENIFromIMDS() (*models.ENIInfo, error) {
+	/*
     mac, err := getIMDS("network/interfaces/macs/")
     if err != nil {
         return nil, err
     }
 
     mac = string([]byte(mac)[:len(mac)-1]) // strip trailing /
+    */
+    mac, err := imds.GetMetaData("mac")
+    if err != nil {
+        return nil, err
+    }
 
-    subnetId, _ := getIMDS(fmt.Sprintf("network/interfaces/macs/%s/subnet-id", mac))
-    vpcId, _ := getIMDS(fmt.Sprintf("network/interfaces/macs/%s/vpc-id", mac))
-    eniId, _ := getIMDS(fmt.Sprintf("network/interfaces/macs/%s/interface-id", mac))
-    sgIds, _ := getIMDS(fmt.Sprintf("network/interfaces/macs/%s/security-group-ids", mac))
+    subnetId, _ := imds.GetMetaData(fmt.Sprintf("network/interfaces/macs/%s/subnet-id", mac))
+    vpcId, _ := imds.GetMetaData(fmt.Sprintf("network/interfaces/macs/%s/vpc-id", mac))
+    eniId, _ := imds.GetMetaData(fmt.Sprintf("network/interfaces/macs/%s/interface-id", mac))
+    sgIds, _ := imds.GetMetaData(fmt.Sprintf("network/interfaces/macs/%s/security-group-ids", mac))
 
     return &models.ENIInfo{
         ENIID:  eniId,

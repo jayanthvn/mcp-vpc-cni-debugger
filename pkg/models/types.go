@@ -2,17 +2,18 @@
 package models
 
 type VpcCniPodNetwork struct {
-    PodName      string         `json:"podName"`
-    Namespace    string         `json:"namespace"`
-    PodIP        string         `json:"podIP"`
+    PodName      string                 `json:"podName"`
+    Namespace    string                 `json:"namespace"`
+    PodIP        string                 `json:"podIP"`
+    PodPID       string                 `json:"podPID"`
     ENI          *ENIInfo       `json:"eni,omitempty"`
     IPAM         *IPAMEntry     `json:"ipam,omitempty"`
-    RouteRules   []LinuxRoute   `json:"routeRules,omitempty"`
-    IPTablesSNAT []string       `json:"iptablesSnat,omitempty"`
-    NodeInfo     *NodeMetadata  `json:"nodeInfo,omitempty"`
-    Anomalies    []string       `json:"anomalies,omitempty"`
+    RouteRules   []string               `json:"routeRules"`
+    IPTablesSNAT []string               `json:"iptablesSNAT"`
+    PodNetwork   map[string]interface{} `json:"podNetwork"`
+    HostRouting  map[string]interface{} `json:"hostRouting"`
+    Anomalies    []string               `json:"anomalies"`
 }
-
 type ENIInfo struct {
     ENIID     string   `json:"eniId"`
     Device    string   `json:"device"`

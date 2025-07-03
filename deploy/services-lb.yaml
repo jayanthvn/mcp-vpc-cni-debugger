@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-debugger
+  namespace: kube-system
+spec:
+  type: LoadBalancer
+  selector:
+    app: mcp-cni-debugger
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080

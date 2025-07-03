@@ -18,14 +18,18 @@ spec:
       serviceAccountName: mcp-cni-debugger
       containers:
       - name: mcp-debugger
-        image: your-repo/mcp-cni-debugger:latest
+        image: 113910096515.dkr.ecr.us-west-2.amazonaws.com/mcp-cni:v9
         imagePullPolicy: Always
-        command: ["/app/mcp-server"]
+        env:
+        - name: CONTAINERD_ADDRESS
+          value: /run/containerd/containerd.sock  
         volumeMounts:
         - name: run-dir
           mountPath: /var/run/aws-node
         - name: iptables
           mountPath: /var/run/xtables.lock
+        - mountPath: /run/containerd/containerd.sock
+          name: containerd-sock    
         securityContext:
           privileged: true
       volumes:
@@ -35,3 +39,6 @@ spec:
       - name: iptables
         hostPath:
           path: /run/xtables.lock
+      - name: containerd-sock
+        hostPath:
+          path: /run/containerd/containerd.sock      
