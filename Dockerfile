@@ -16,7 +16,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o mcp-server ./cmd/mcp-serve
 FROM alpine:latest
 WORKDIR /app
 
-RUN apk add --no-cache ca-certificates curl iproute2 ethtool
+RUN apk add --no-cache ca-certificates curl iproute2 ethtool util-linux
 COPY --from=builder /usr/local/bin/crictl /usr/local/bin/crictl
 COPY --from=builder /app/mcp-server .
 RUN chmod +x /usr/local/bin/crictl

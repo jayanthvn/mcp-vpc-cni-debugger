@@ -18,7 +18,7 @@ spec:
       serviceAccountName: mcp-cni-debugger
       containers:
       - name: mcp-debugger
-        image: 113910096515.dkr.ecr.us-west-2.amazonaws.com/mcp-cni:v9
+        image: <url> 
         imagePullPolicy: Always
         env:
         - name: CONTAINERD_ADDRESS

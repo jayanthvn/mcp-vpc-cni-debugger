@@ -3,10 +3,13 @@ package collectors
 import (
     "context"
     "errors"
+    "os"
     "os/exec"
     "strconv"
     "strings"
     "fmt"
+    "crypto/sha1"
+    "encoding/hex"
 
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
     "k8s.io/client-go/kubernetes"
@@ -59,7 +62,24 @@ func GenerateVpcCniPodReport(podName, namespace string) (*models.VpcCniPodNetwor
     routes, _ := GetRoutingInfo()
     snat, _ := GetSNATRules()
 
-    // Step 5: Return structured response
+    // Step 5: Check static ARP and compare MAC
+    hasARP, podMAC, err := CheckStaticARP(pid)
+    arpStatus := fmt.Sprintf("Static ARP 169.254.1.1 present: %v, MAC: %s", hasARP, podMAC)
+    if err != nil {
+	    arpStatus = fmt.Sprintf("Static ARP check failed: %v", err)
+    }
+
+    // Get host veth MAC
+    hostMAC, err := GetMACForHostVeth(namespace, podName)
+    if err != nil {
+	    arpStatus += fmt.Sprintf("; Host veth MAC check failed: %v", err)
+    } else if hasARP && podMAC != hostMAC {
+	    arpStatus += fmt.Sprintf("; MISMATCH with host-side veth MAC: %s", hostMAC)
+    } else if hasARP {
+	    arpStatus += "; MAC matches host-side veth"
+    }
+
+    // Step 6: Return structured response
     return &models.VpcCniPodNetwork{
         PodName:      podName,
         Namespace:    namespace,
@@ -69,7 +89,7 @@ func GenerateVpcCniPodReport(podName, namespace string) (*models.VpcCniPodNetwor
         IPAM:         ipam,
         RouteRules:   flattenRoutes(routes),
         IPTablesSNAT: snat,
-        Anomalies:    []string{}, // placeholder for further validation logic
+        Anomalies:    []string{arpStatus},
     }, nil
 }
 
@@ -80,4 +100,51 @@ func flattenRoutes(routes []models.LinuxRoute) []string {
         flat = append(flat, entry)
     }
     return flat
+}
+
+// CheckStaticARP verifies if 169.254.1.1 is a static ARP entry inside the pod's network namespace.
+func CheckStaticARP(pid string) (found bool, mac string, err error) {
+    arpPath := fmt.Sprintf("/proc/%s/net/arp", pid)
+    data, err := os.ReadFile(arpPath)
+    if err != nil {
+        return false, "", fmt.Errorf("failed to read ARP table: %w", err)
+    }
+
+    lines := strings.Split(string(data), "\n")
+    for _, line := range lines[1:] { // skip header
+        fields := strings.Fields(line)
+        if len(fields) >= 6 && fields[0] == "169.254.1.1" {
+            if fields[2] == "0x6" { // flags indicating static/permanent
+                return true, fields[3], nil
+            }
+            return false, "", nil // entry exists but not static
+        }
+    }
+
+    return false, "", nil // not found
+}
+
+// GeneratePodHostVethName generates the name for Pod's host-side veth device.
+func GeneratePodHostVethName(prefix string, podNamespace string, podName string) string {
+    suffix := GeneratePodHostVethNameSuffix(podNamespace, podName)
+    return fmt.Sprintf("%s%s", prefix, suffix)
+}
+
+// GeneratePodHostVethNameSuffix generates the name suffix for Pod's host-side veth.
+func GeneratePodHostVethNameSuffix(podNamespace string, podName string) string {
+    h := sha1.New()
+    h.Write([]byte(fmt.Sprintf("%s.%s", podNamespace, podName)))
+    return hex.EncodeToString(h.Sum(nil))[:11]
+}
+
+// GetMACForHostVeth uses the generated host veth name to read its MAC from sysfs
+func GetMACForHostVeth(podNamespace, podName string) (string, error) {
+    eniName := GeneratePodHostVethName("eni", podNamespace, podName)
+    macPath := fmt.Sprintf("/sys/class/net/%s/address", eniName)
+    macBytes, err := os.ReadFile(macPath)
+    if err != nil {
+        return "", fmt.Errorf("failed to read MAC from %s: %w", macPath, err)
+    }
+
+    return strings.TrimSpace(string(macBytes)), nil
 }
